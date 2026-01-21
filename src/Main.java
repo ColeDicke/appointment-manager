@@ -15,7 +15,14 @@ public class Main {
     static DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("h:mm a");
 
 
-
+    /*
+    Function: main
+    Description: The main function creates the appointment master opject that keeps track of all appointments
+    created. It also runs the main loop that shows the menu that user will be prompted with until the quit the program.
+    Along with this it calls to the function for the option the user selects and validates the input for any selection.
+    Input: No parameters, but takes the option from user.
+    Output: Outputs menu text for selection.
+     */
     public static void main(String[] args) {
         apptMaster = new AppointmentMaster();
         System.out.println("\nWelcome to the Appointment Manager\n");
@@ -45,13 +52,21 @@ public class Main {
                     cont = false;
                     break;
                 default:
-
                     System.out.println("\nInvalid input. Try again.\n");
             }
         }
     }
 
-
+    /*
+    Function: cancelAppointment
+    Description: This function is where case 4 is lead from the menu. It is used for cancelling a users previously
+    scheduled appointment. It does this by searching for an appointment either by a name or by and appointment ID
+    number that was given to the user upon scheduling. It intakes either form of search and asks for details and then
+    verifies that the details are the correct format and exist. If it makes it this far, it will ask a user to select
+    which appointment they want to cancel if there are multiple, if there is a singular one then it will assume that is
+    the intended appointment, if there is none then it will tell you there are no appointments scheduled for the user.
+    It will the remove the selected appointment from the 
+     */
     private static void cancelAppointment() {
         int choice;
         boolean cont = true;
@@ -135,7 +150,15 @@ public class Main {
             }
         }
     }
-
+    /*
+    Function: rescheduleAppointment
+    Description: Handles menu option 3. Allows a user to reschedule an existing appointment by
+    searching either by name or appointment ID. If multiple appointments exist under a name,
+    the user selects which appointment to reschedule. The original appointment is removed and
+    a new appointment is created with the updated date and time.
+    Input: User input for search method, appointment identification, duration, and date/time.
+    Output: Displays updated appointment details and new appointment ID.
+    */
     private static void rescheduleAppointment() {
         int choice;
         boolean cont = true;
@@ -245,7 +268,13 @@ public class Main {
             }
         }
     }
-
+    /*
+    Function: appointmentDetails
+    Description: Displays all appointments associated with a given customer name.
+    If no appointments exist for the entered name, the user is notified.
+    Input: Customer name entered by user.
+    Output: Prints appointment details to the console.
+    */
     private static void appointmentDetails() {
         System.out.println("Enter your name (John Doe): ");
         String name = input.nextLine().trim();
@@ -259,7 +288,13 @@ public class Main {
             System.out.println(e);
         }
     }
-
+    /*
+    Function: scheduleAppointment
+    Description: Handles menu option 1. Prompts the user for their name, desired appointment
+    duration, and date/time. Creates and stores a new appointment if valid input is provided.
+    Input: Customer name, appointment duration, appointment date and time.
+    Output: Confirms appointment creation and displays appointment ID.
+    */
     private static void scheduleAppointment() {
         System.out.print("Enter your first and last name: ");
         String name = input.nextLine();
@@ -276,6 +311,13 @@ public class Main {
         System.out.println("\nAppointment Created!\n" +
                             "Appointment ID for future reference: " + newAppt.getAppointmentID() + "\n");
         }
+    /*
+    Function: readInt
+    Description: Utility function that repeatedly prompts the user until a valid integer
+    is entered. Used for menu selections and numeric input validation.
+    Input: Prompt string displayed to the user.
+    Output: Returns a validated integer.
+    */
     public static int readInt(String prompt) {
         while (true) {
             System.out.print(prompt);
@@ -287,6 +329,15 @@ public class Main {
             }
         }
     }
+    /*
+    Function: scheduleApptDate
+    Description: Prompts the user for an appointment date and determines all available start
+    times for the selected duration. Allows the user to choose from available time slots or
+    cancel the operation.
+    Input: Appointment duration in minutes.
+    Output: Returns a LocalDateTime representing the selected appointment time,
+    or null if cancelled.
+    */
     private static LocalDateTime scheduleApptDate(int apptDuration){
         List<LocalTime> availableTimes = new ArrayList<>();
         LocalDate date = null;
@@ -331,6 +382,13 @@ public class Main {
         LocalDateTime dateTime = LocalDateTime.of(date, selectedTime);
         return dateTime;
     }
+    /*
+    Function: scheduleApptDuration
+    Description: Prompts the user to enter a valid appointment duration (15, 30, 45, or 60 minutes).
+    Continues prompting until a valid duration is entered.
+    Input: User-entered appointment duration.
+    Output: Returns validated appointment duration in minutes.
+    */
     private static int scheduleApptDuration(){
         int apptDuration = 60;
 
