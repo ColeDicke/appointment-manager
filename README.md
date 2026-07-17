@@ -7,7 +7,10 @@ A Java console application that allows users to schedule, cancel, and reschedule
 - Variable appointment durations (15–60 minutes)
 - Conflict prevention using overlap detection
 - Search appointments by name or ID
+- Case-insensitive customer-name searches
+- Flexible date entry (`M/D/YYYY` or `MM/DD/YYYY`)
 - Rescheduling and cancellation
+- Automatic local saving to `appointments.txt`
 
 ## Tech Stack
 - Java

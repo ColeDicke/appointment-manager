@@ -41,7 +41,7 @@ public class AppointmentMaster {
 
         byID.put(appt.getAppointmentID(), appt);
 
-        byName.computeIfAbsent(appt.getCustomerName(), ignored -> new ArrayList<>()).add(appt);
+        byName.computeIfAbsent(normalizeName(appt.getCustomerName()), ignored -> new ArrayList<>()).add(appt);
 
     }
 
@@ -53,7 +53,8 @@ public class AppointmentMaster {
     Output: List of appointments for the specified customer, or an empty list if none exist.
     */
     public List<Appointment> getApptsByName(String cusName){
-        return List.copyOf(byName.getOrDefault(cusName, Collections.emptyList()));
+        return Collections.unmodifiableList(new ArrayList<>(
+                byName.getOrDefault(normalizeName(cusName), Collections.emptyList())));
     }
 
         /*
@@ -75,7 +76,13 @@ public class AppointmentMaster {
      Output: List of appointments scheduled on the specified date.
      */
     public List<Appointment> getApptsByDate(LocalDate date){
-        return List.copyOf(byDate.getOrDefault(date, Collections.emptyList()));
+        return Collections.unmodifiableList(new ArrayList<>(
+                byDate.getOrDefault(date, Collections.emptyList())));
+    }
+
+    /** Returns every appointment once, regardless of its date or customer index. */
+    public List<Appointment> getAllAppointments() {
+        return Collections.unmodifiableList(new ArrayList<>(byID.values()));
     }
 
         /*
@@ -95,11 +102,12 @@ public class AppointmentMaster {
             }
         }
 
-        List<Appointment> listName = byName.get(appt.getCustomerName());
+        String customerNameKey = normalizeName(appt.getCustomerName());
+        List<Appointment> listName = byName.get(customerNameKey);
         if (listName != null) {
             listName.remove(appt);
             if (listName.isEmpty()) {
-                byName.remove(appt.getCustomerName());
+                byName.remove(customerNameKey);
             }
         }
 
@@ -157,5 +165,9 @@ public class AppointmentMaster {
             current = current.plusMinutes(15);
         }
         return timeList;
+    }
+
+    private String normalizeName(String name) {
+        return name.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 }

@@ -1,5 +1,6 @@
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /*
@@ -9,6 +10,8 @@ Stores customer information, appointment start time, duration, and unique identi
 Provides methods for rescheduling, accessing, and displaying appointment details.
 */
 public class Appointment {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("M/d/uuuu");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mm a");
     private final int apptDurationMinutes;
     private final String customerName;
     private final LocalDateTime apptStart;
@@ -33,6 +36,12 @@ public class Appointment {
         customerName = cusName;
         apptStart = apptS;
         this.appointmentID = appointmentID;
+    }
+
+    /** Recreates an appointment that was previously saved to local storage. */
+    public static Appointment fromSavedData(int duration, String customerName,
+                                            LocalDateTime start, UUID appointmentID) {
+        return new Appointment(duration, customerName, start, appointmentID);
     }
     /*
     Function: getApptStart
@@ -85,8 +94,8 @@ public class Appointment {
     @Override
     public String toString() {
         return "Customer Name: " + customerName + "\n" +
-                "Appointment Date: " + apptStart.toLocalDate() + "\n" +
-                "Appointment Start Time: " + apptStart.toLocalTime() + "\n" +
+                "Appointment Date: " + apptStart.toLocalDate().format(DATE_FORMATTER) + "\n" +
+                "Appointment Start Time: " + apptStart.toLocalTime().format(TIME_FORMATTER) + "\n" +
                 "Appointment Duration: " + apptDurationMinutes + " minutes" + "\n" +
                 "Appointment ID: " + appointmentID + "\n";
 

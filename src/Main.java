@@ -3,6 +3,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -11,7 +13,8 @@ import java.util.UUID;
 public class Main {
     static AppointmentMaster apptMaster;
     static Scanner input = new Scanner(System.in);
-    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/uuuu")
+            .withResolverStyle(ResolverStyle.STRICT);
     static DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("h:mm a");
 
 
@@ -25,6 +28,7 @@ public class Main {
     */
     public static void main(String[] args) {
         apptMaster = new AppointmentMaster();
+        loadAppointments();
         System.out.println("\nWelcome to the Appointment Manager\n");
         boolean cont = true;
         while (cont) {
@@ -153,12 +157,13 @@ Output: Displays appointment cancellation details.
         }
 
         apptMaster.appointmentRemove(appt);
+        saveAppointments();
 
         System.out.println(
                 "\nAppointment for " +
                         appt.getCustomerName() +
                         " cancelled on " +
-                        appt.getApptStart().toLocalDate() +
+                        appt.getApptStart().toLocalDate().format(formatter) +
                         " at " +
                         appt.getApptStart().toLocalTime().format(formatter2) +
                         ".\n");
@@ -192,16 +197,17 @@ Output: Displays appointment cancellation details.
         apptMaster.appointmentRemove(oldAppt);
 
         apptMaster.addAppt(newAppt);
+        saveAppointments();
 
         System.out.println(
                 "\nAppointment for " +
                         oldAppt.getCustomerName() +
                         " rescheduled from " +
-                        oldAppt.getApptStart().toLocalDate() +
+                        oldAppt.getApptStart().toLocalDate().format(formatter) +
                         " at " +
                         oldAppt.getApptStart().toLocalTime().format(formatter2) +
                         " to " +
-                        newAppt.getApptStart().toLocalDate() +
+                        newAppt.getApptStart().toLocalDate().format(formatter) +
                         " at " +
                         newAppt.getApptStart().toLocalTime().format(formatter2) +
                         "."
@@ -251,6 +257,7 @@ Output: Displays appointment details or a notification if no appointments exist.
 
         Appointment newAppt = new Appointment(apptDuration, name, dateTime);
         apptMaster.addAppt(newAppt);
+        saveAppointments();
         System.out.println("\nAppointment Created!\n" +
                             "Appointment ID for future reference: " + newAppt.getAppointmentID() + "\n");
         }
@@ -269,6 +276,24 @@ Output: Displays appointment details or a notification if no appointments exist.
             } catch (NumberFormatException e) {
                 System.out.println("\nInvalid Input. Try Again: \n");
             }
+        }
+    }
+
+    private static void loadAppointments() {
+        try {
+            for (Appointment appointment : AppointmentStorage.load()) {
+                apptMaster.addAppt(appointment);
+            }
+        } catch (IOException exception) {
+            System.out.println("Could not load saved appointments: " + exception.getMessage());
+        }
+    }
+
+    private static void saveAppointments() {
+        try {
+            AppointmentStorage.save(apptMaster.getAllAppointments());
+        } catch (IOException exception) {
+            System.out.println("Could not save appointments: " + exception.getMessage());
         }
     }
 
@@ -298,7 +323,7 @@ Output: Returns the selected LocalDateTime or null if cancelled.
 
         while (availableTimes.isEmpty()) {
             while (date == null) {
-                System.out.print("Enter date (MM/DD/YYYY) or 0 to cancel: ");
+                System.out.print("Enter date (M/D/YYYY) or 0 to cancel: ");
                 String dateInput = input.nextLine();
                 if (dateInput.equals("0")) {
                     return null; // go back to menu
@@ -311,7 +336,7 @@ Output: Returns the selected LocalDateTime or null if cancelled.
                         date = null;
                     }
                 } catch (DateTimeParseException e) {
-                    System.out.println("Invalid date format. Use MM/DD/YYYY (example: 03/15/2026).\n");
+                    System.out.println("Invalid date format. Use M/D/YYYY (example: 3/15/2026).\n");
                 }
             }
 
