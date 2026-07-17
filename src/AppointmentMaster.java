@@ -37,21 +37,11 @@ public class AppointmentMaster {
     */
     public void addAppt(Appointment appt){
         LocalDate date = appt.getApptStart().toLocalDate();
-        List<Appointment> list = byDate.get(date);
-        if(list == null){
-            list = new ArrayList<>();
-            byDate.put(date, list);
-        }
-        list.add(appt);
+        byDate.computeIfAbsent(date, ignored -> new ArrayList<>()).add(appt);
 
         byID.put(appt.getAppointmentID(), appt);
 
-        List<Appointment> listName = byName.get(appt.getCustomerName());
-        if(listName == null){
-            listName = new ArrayList<>();
-            byName.put(appt.getCustomerName(), listName);
-        }
-        listName.add(appt);
+        byName.computeIfAbsent(appt.getCustomerName(), ignored -> new ArrayList<>()).add(appt);
 
     }
 
@@ -63,7 +53,7 @@ public class AppointmentMaster {
     Output: List of appointments for the specified customer, or an empty list if none exist.
     */
     public List<Appointment> getApptsByName(String cusName){
-        return byName.getOrDefault(cusName, Collections.emptyList());
+        return List.copyOf(byName.getOrDefault(cusName, Collections.emptyList()));
     }
 
         /*
@@ -85,7 +75,7 @@ public class AppointmentMaster {
      Output: List of appointments scheduled on the specified date.
      */
     public List<Appointment> getApptsByDate(LocalDate date){
-        return byDate.getOrDefault(date, Collections.emptyList());
+        return List.copyOf(byDate.getOrDefault(date, Collections.emptyList()));
     }
 
         /*
@@ -98,16 +88,26 @@ public class AppointmentMaster {
     public void appointmentRemove(Appointment appt){
         LocalDate date = appt.getApptStart().toLocalDate();
         List<Appointment> listDate = byDate.get(date);
-        listDate.remove(appt);
+        if (listDate != null) {
+            listDate.remove(appt);
+            if (listDate.isEmpty()) {
+                byDate.remove(date);
+            }
+        }
 
         List<Appointment> listName = byName.get(appt.getCustomerName());
-        listName.remove(appt);
+        if (listName != null) {
+            listName.remove(appt);
+            if (listName.isEmpty()) {
+                byName.remove(appt.getCustomerName());
+            }
+        }
 
         byID.remove(appt.getAppointmentID());
     }
 
         /*
-    Function: getAvaliableStarts
+    Function: getAvailableStarts
     Description: Determines all available appointment start times for a given date and
     appointment duration. Checks for conflicts with existing appointments and only
     returns valid start times within business hours.
@@ -116,7 +116,12 @@ public class AppointmentMaster {
         duration - desired appointment duration in minutes
     Output: List of available LocalTime start times.
     */
-    public List<LocalTime> getAvaliableStarts(LocalDate date, int duration) {
+    public List<LocalTime> getAvailableStarts(LocalDate date, int duration) {
+        return getAvailableStarts(date, duration, null);
+    }
+
+    /** Finds valid starts while optionally ignoring an appointment being moved. */
+    public List<LocalTime> getAvailableStarts(LocalDate date, int duration, Appointment ignoredAppointment) {
         List<LocalTime> timeList = new ArrayList<>();
         List<Appointment> apptList = getApptsByDate(date);
 
@@ -132,6 +137,10 @@ public class AppointmentMaster {
             boolean conflict = false;
 
             for (Appointment appt : apptList) {
+                if (ignoredAppointment != null
+                        && appt.getAppointmentID().equals(ignoredAppointment.getAppointmentID())) {
+                    continue;
+                }
                 LocalDateTime existingStart = appt.getApptStart();
                 LocalDateTime existingEnd =
                         existingStart.plusMinutes(appt.getApptDuration());

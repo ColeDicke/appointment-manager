@@ -9,10 +9,9 @@ Stores customer information, appointment start time, duration, and unique identi
 Provides methods for rescheduling, accessing, and displaying appointment details.
 */
 public class Appointment {
-    private int apptDurationMinutes;
-    private String customerName;
-    private final UUID customerId;
-    private LocalDateTime apptStart;
+    private final int apptDurationMinutes;
+    private final String customerName;
+    private final LocalDateTime apptStart;
     private final UUID appointmentID;
 
         /*
@@ -26,11 +25,14 @@ public class Appointment {
     Output: Initializes a new Appointment object.
     */
     public Appointment(int apptD, String cusName, LocalDateTime apptS){
+        this(apptD, cusName, apptS, UUID.randomUUID());
+    }
+
+    private Appointment(int apptD, String cusName, LocalDateTime apptS, UUID appointmentID){
         apptDurationMinutes = apptD;
         customerName = cusName;
-        customerId = UUID.randomUUID();
         apptStart = apptS;
-        appointmentID = UUID.randomUUID();
+        this.appointmentID = appointmentID;
     }
     /*
     Function: getApptStart
@@ -67,6 +69,11 @@ public class Appointment {
     */
     public UUID getAppointmentID() {
         return appointmentID;
+    }
+
+    /** Returns a replacement appointment while retaining its reference ID. */
+    public Appointment rescheduledTo(int duration, LocalDateTime start) {
+        return new Appointment(duration, customerName, start, appointmentID);
     }
     /*
     Function: toString

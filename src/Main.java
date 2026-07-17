@@ -74,7 +74,7 @@ Output: Selected Appointment object or null.
         switch (choice) {
             case 1:
                 System.out.print("\nEnter your first and last name: ");
-                String name = input.nextLine();
+                String name = readName();
 
                 List<Appointment> nameList = apptMaster.getApptsByName(name);
 
@@ -99,8 +99,9 @@ Output: Selected Appointment object or null.
                     UUID id = UUID.fromString(apptIDInput);
                     Appointment appt = apptMaster.getApptById(id);
 
-                    if (appt == null) {
-                        System.out.println("No appointment found with ID: " + id);
+                    if (appt == null || !nameList.contains(appt)) {
+                        System.out.println("No appointment found with that ID for " + name + ".");
+                        return null;
                     }
 
                     return appt;
@@ -180,20 +181,15 @@ Output: Displays appointment cancellation details.
 
         int apptDuration = scheduleApptDuration();
 
-        LocalDateTime newDateTime = scheduleApptDate(apptDuration);
+        LocalDateTime newDateTime = scheduleApptDate(apptDuration, oldAppt);
 
         if (newDateTime == null) {
             System.out.println("Reschedule cancelled. Keeping original appointment.\n");
             return;
         }
 
+        Appointment newAppt = oldAppt.rescheduledTo(apptDuration, newDateTime);
         apptMaster.appointmentRemove(oldAppt);
-
-        Appointment newAppt = new Appointment(
-                apptDuration,
-                oldAppt.getCustomerName(),
-                newDateTime
-        );
 
         apptMaster.addAppt(newAppt);
 
@@ -212,9 +208,7 @@ Output: Displays appointment cancellation details.
         );
 
         System.out.println(
-                "New Appointment ID: " +
-                        newAppt.getAppointmentID() +
-                        "\n"
+                "Appointment ID (unchanged): " + newAppt.getAppointmentID() + "\n"
         );
     }
     /*
@@ -226,7 +220,7 @@ Output: Displays appointment details or a notification if no appointments exist.
 */
     private static void appointmentDetails() {
         System.out.println("Enter your name (John Doe): ");
-        String name = input.nextLine().trim();
+        String name = readName();
         System.out.println();
         List<Appointment> nameList = apptMaster.getApptsByName(name);
         if(nameList.isEmpty()){
@@ -246,7 +240,7 @@ Output: Displays appointment details or a notification if no appointments exist.
  */
     private static void scheduleAppointment() {
         System.out.print("Enter your first and last name: ");
-        String name = input.nextLine();
+        String name = readName();
 
         int apptDuration = scheduleApptDuration();
         LocalDateTime dateTime = scheduleApptDate(apptDuration);
@@ -277,6 +271,16 @@ Output: Displays appointment details or a notification if no appointments exist.
             }
         }
     }
+
+    private static String readName() {
+        while (true) {
+            String name = input.nextLine().trim().replaceAll("\\s+", " ");
+            if (!name.isEmpty()) {
+                return name;
+            }
+            System.out.print("Name cannot be blank. Enter your first and last name: ");
+        }
+    }
     /*
 Function: scheduleApptDate
 Description: Retrieves available appointment times for a selected date and
@@ -285,6 +289,10 @@ Input: Appointment duration in minutes.
 Output: Returns the selected LocalDateTime or null if cancelled.
 */
     private static LocalDateTime scheduleApptDate(int apptDuration){
+        return scheduleApptDate(apptDuration, null);
+    }
+
+    private static LocalDateTime scheduleApptDate(int apptDuration, Appointment ignoredAppointment){
         List<LocalTime> availableTimes = new ArrayList<>();
         LocalDate date = null;
 
@@ -307,7 +315,7 @@ Output: Returns the selected LocalDateTime or null if cancelled.
                 }
             }
 
-            availableTimes = apptMaster.getAvaliableStarts(date, apptDuration);
+            availableTimes = apptMaster.getAvailableStarts(date, apptDuration, ignoredAppointment);
             if (availableTimes.isEmpty()) {
                 System.out.println("No available times on selected date. Try another date or appointment duration.\n");
                 date = null;
