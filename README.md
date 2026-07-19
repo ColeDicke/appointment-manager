@@ -16,3 +16,9 @@ A Java console application that allows users to schedule, cancel, and reschedule
 - Java
 - java.time API
 - HashMap / ArrayList
+
+## GUI version
+
+The console app remains available through `Main`. To run the JavaFX GUI, run
+`AppointmentManagerApp` from IntelliJ. The GUI uses the same `appointments.txt`
+file as the console version.
