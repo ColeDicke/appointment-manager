@@ -28,5 +28,8 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-# Local appointment data
-appointments.txt
+# Local backend configuration and build output
+.env
+.env.*
+!.env.example
+server/target/

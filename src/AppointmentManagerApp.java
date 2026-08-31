@@ -151,21 +151,33 @@ public class AppointmentManagerApp extends Application {
         }
 
         if (appointmentBeingRescheduled == null) {
-            appointmentMaster.addAppt(new Appointment(durationBox.getValue(), name,
-                    datePicker.getValue().atTime(selectedTime)));
+            Appointment newAppointment = new Appointment(durationBox.getValue(), name,
+                    datePicker.getValue().atTime(selectedTime));
+            try {
+                AppointmentStorage.create(newAppointment);
+                appointmentMaster.addAppt(newAppointment);
+            } catch (IOException exception) {
+                showMessage("Could not schedule appointment: " + exception.getMessage());
+                return;
+            }
             setStatus("Appointment scheduled.");
         } else {
             Appointment updated = appointmentBeingRescheduled.rescheduledTo(
                     durationBox.getValue(), datePicker.getValue().atTime(selectedTime));
-            appointmentMaster.appointmentRemove(appointmentBeingRescheduled);
-            appointmentMaster.addAppt(updated);
+            try {
+                AppointmentStorage.update(updated);
+                appointmentMaster.appointmentRemove(appointmentBeingRescheduled);
+                appointmentMaster.addAppt(updated);
+            } catch (IOException exception) {
+                showMessage("Could not reschedule appointment: " + exception.getMessage());
+                return;
+            }
             appointmentBeingRescheduled = null;
             nameField.setEditable(true);
             saveButton.setText("Schedule Appointment");
             setStatus("Appointment rescheduled.");
         }
 
-        saveAppointments();
         refreshAppointments();
         availableTimes.getItems().clear();
     }
@@ -195,8 +207,13 @@ public class AppointmentManagerApp extends Application {
             return;
         }
 
-        appointmentMaster.appointmentRemove(selected);
-        saveAppointments();
+        try {
+            AppointmentStorage.delete(selected);
+            appointmentMaster.appointmentRemove(selected);
+        } catch (IOException exception) {
+            showMessage("Could not cancel appointment: " + exception.getMessage());
+            return;
+        }
         refreshAppointments();
         setStatus("Appointment cancelled.");
     }
@@ -229,14 +246,6 @@ public class AppointmentManagerApp extends Application {
             }
         } catch (IOException exception) {
             showMessage("Could not load saved appointments: " + exception.getMessage());
-        }
-    }
-
-    private void saveAppointments() {
-        try {
-            AppointmentStorage.save(appointmentMaster.getAllAppointments());
-        } catch (IOException exception) {
-            showMessage("Could not save appointments: " + exception.getMessage());
         }
     }
 
