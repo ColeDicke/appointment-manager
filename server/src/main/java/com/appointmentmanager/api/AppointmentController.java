@@ -10,12 +10,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -31,31 +33,56 @@ public class AppointmentController {
     }
 
     @GetMapping
-    public List<AppointmentResponse> list(@RequestParam(required = false) String name) {
+    public List<AppointmentResponse> list(
+            @RequestAttribute(AuthenticationFilter.USER_ID_ATTRIBUTE) UUID userId,
+            @RequestParam(required = false) String name) {
         String normalizedName = name == null || name.isBlank() ? null : normalizeName(name);
-        return appointments.findAll(normalizedName);
+        return appointments.findAll(userId, normalizedName);
     }
 
     /** A compact, JDK-friendly format used by the existing JavaFX desktop client. */
     @GetMapping(value = "/export", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String export() {
-        return appointments.findAll(null).stream()
+    public String export(@RequestAttribute(AuthenticationFilter.USER_ID_ATTRIBUTE) UUID userId) {
+        return appointments.findAll(userId, null).stream()
                 .map(this::toExportLine)
                 .collect(java.util.stream.Collectors.joining("\n"));
     }
 
+    @GetMapping(value = "/availability", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> availability(
+            @RequestAttribute(AuthenticationFilter.USER_ID_ATTRIBUTE) UUID userId,
+            @RequestParam LocalDate date,
+            @RequestParam int durationMinutes,
+            @RequestParam(required = false) UUID excludedId) {
+        if (durationMinutes != 15 && durationMinutes != 30
+                && durationMinutes != 45 && durationMinutes != 60) {
+            return ResponseEntity.badRequest().body("Duration must be 15, 30, 45, or 60 minutes.");
+        }
+        if (excludedId != null && appointments.findById(excludedId, userId).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        String result = appointments.findAvailableStarts(date, durationMinutes, excludedId).stream()
+                .map(LocalTime::toString)
+                .collect(java.util.stream.Collectors.joining("\n"));
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> create(@Valid @RequestBody AppointmentRequest request) {
+    public ResponseEntity<?> create(
+            @RequestAttribute(AuthenticationFilter.USER_ID_ATTRIBUTE) UUID userId,
+            @Valid @RequestBody AppointmentRequest request) {
         String conflict = validate(request, null);
         if (conflict != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(conflict));
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(appointments.insert(
-                normalizeName(request.customerName()), request.startsAt(), request.durationMinutes()));
+                userId, normalizeName(request.customerName()), request.startsAt(), request.durationMinutes()));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<?> createFromDesktop(@RequestParam UUID id,
+    public ResponseEntity<?> createFromDesktop(
+                                                @RequestAttribute(AuthenticationFilter.USER_ID_ATTRIBUTE) UUID userId,
+                                                @RequestParam UUID id,
                                                 @RequestParam String customerName,
                                                 @RequestParam LocalDateTime startsAt,
                                                 @RequestParam int durationMinutes) {
@@ -65,12 +92,14 @@ public class AppointmentController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(conflict));
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(appointments.insert(
-                id, normalizeName(customerName), startsAt, durationMinutes));
+                id, userId, normalizeName(customerName), startsAt, durationMinutes));
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> update(@PathVariable UUID id, @Valid @RequestBody AppointmentRequest request) {
-        if (appointments.findById(id).isEmpty()) {
+    public ResponseEntity<?> update(
+            @RequestAttribute(AuthenticationFilter.USER_ID_ATTRIBUTE) UUID userId,
+            @PathVariable UUID id, @Valid @RequestBody AppointmentRequest request) {
+        if (appointments.findById(id, userId).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         String conflict = validate(request, id);
@@ -78,15 +107,17 @@ public class AppointmentController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(conflict));
         }
         return ResponseEntity.ok(appointments.update(
-                id, normalizeName(request.customerName()), request.startsAt(), request.durationMinutes()));
+                id, userId, normalizeName(request.customerName()), request.startsAt(), request.durationMinutes()));
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<?> updateFromDesktop(@PathVariable UUID id,
+    public ResponseEntity<?> updateFromDesktop(
+                                                @RequestAttribute(AuthenticationFilter.USER_ID_ATTRIBUTE) UUID userId,
+                                                @PathVariable UUID id,
                                                 @RequestParam String customerName,
                                                 @RequestParam LocalDateTime startsAt,
                                                 @RequestParam int durationMinutes) {
-        if (appointments.findById(id).isEmpty()) {
+        if (appointments.findById(id, userId).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         AppointmentRequest request = new AppointmentRequest(customerName, startsAt, durationMinutes);
@@ -94,15 +125,22 @@ public class AppointmentController {
         if (conflict != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(conflict));
         }
-        return ResponseEntity.ok(appointments.update(id, normalizeName(customerName), startsAt, durationMinutes));
+        return ResponseEntity.ok(appointments.update(
+                id, userId, normalizeName(customerName), startsAt, durationMinutes));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        return appointments.delete(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    public ResponseEntity<Void> delete(
+            @RequestAttribute(AuthenticationFilter.USER_ID_ATTRIBUTE) UUID userId,
+            @PathVariable UUID id) {
+        return appointments.delete(id, userId)
+                ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
     private String validate(AppointmentRequest request, UUID excludedId) {
+        if (request.customerName() == null || request.customerName().isBlank()) {
+            return "Customer name is required.";
+        }
         if (request.durationMinutes() != 15 && request.durationMinutes() != 30
                 && request.durationMinutes() != 45 && request.durationMinutes() != 60) {
             return "Duration must be 15, 30, 45, or 60 minutes.";

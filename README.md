@@ -12,11 +12,14 @@ appointments without double-booking.
 - Flexible date entry (`M/D/YYYY` or `MM/DD/YYYY`)
 - Rescheduling and cancellation
 - A shared PostgreSQL database through a backend API (Supabase)
+- Email/password accounts with per-user appointment privacy
 
 ## Tech Stack
 - Java
 - java.time API
 - HashMap / ArrayList
+- Spring Boot
+- Supabase Auth and PostgreSQL
 
 ## Shared PostgreSQL database (Supabase)
 
@@ -34,21 +37,30 @@ database password.
    $env:DATABASE_URL = 'jdbc:postgresql://aws-REGION.pooler.supabase.com:5432/postgres?sslmode=require'
    $env:DATABASE_USERNAME = 'postgres.PROJECT_REF'
    $env:DATABASE_PASSWORD = 'your-database-password'
+   $env:SUPABASE_URL = 'https://PROJECT_REF.supabase.co'
+   $env:SUPABASE_PUBLISHABLE_KEY = 'your-publishable-key'
    ```
 
 3. Run the API from `server` with `mvn spring-boot:run`. Its first successful
    connection creates the `appointments` table and indexes automatically.
 
-The API is available locally at `http://localhost:8080/api/appointments` and
-provides `GET`, `POST`, `PUT`, and `DELETE` operations. Before other people can
-use the shared system, deploy this API to a hosting service and configure the
-same three environment variables there.
+The API is available locally at `http://localhost:8080`. Appointment endpoints
+require a valid Supabase Auth access token and only return rows owned by that
+user. Configure all five environment variables above in the deployed backend.
+Use `/health` as the hosting service's public health-check path.
+
+The database table has Row Level Security enabled and direct access is revoked
+from Supabase's `anon` and `authenticated` database roles. The desktop client
+does not query the table directly; the backend verifies each user with Supabase
+Auth and applies the ownership filter to every query.
 
 The API includes a `server/Dockerfile` for deployment services such as Render.
 
 ## Run the desktop app
 
-Start the API first, then run `AppointmentManagerLauncher` from IntelliJ. The
+Start the API first, then run `AppointmentManagerLauncher` from IntelliJ. Sign
+up with an email and password, confirm the email if prompted, and sign in. The
 desktop app calls the API at `http://localhost:8080` by default. To point it at
 a deployed API, set `APPOINTMENT_API_URL` to that API's HTTPS base URL in the
-desktop run configuration.
+desktop run configuration. Login tokens remain in memory and are cleared when
+the user logs out or closes the app.

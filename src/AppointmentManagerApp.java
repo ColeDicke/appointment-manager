@@ -9,6 +9,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
@@ -30,7 +31,7 @@ import java.util.List;
 public class AppointmentManagerApp extends Application {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mm a");
 
-    private final AppointmentMaster appointmentMaster = new AppointmentMaster();
+    private AppointmentMaster appointmentMaster = new AppointmentMaster();
     private final TextField nameField = new TextField();
     private final DatePicker datePicker = new DatePicker(LocalDate.now());
     private final ComboBox<Integer> durationBox = new ComboBox<>();
@@ -43,10 +44,83 @@ public class AppointmentManagerApp extends Application {
     private Appointment appointmentBeingRescheduled;
     private TabPane tabPane;
     private Tab scheduleTab;
+    private Scene mainScene;
+    private final Label accountLabel = new Label();
 
     @Override
     public void start(Stage stage) {
+        stage.setTitle("Appointment Manager");
+        showLoginScene(stage);
+        stage.show();
+    }
+
+    private void showLoginScene(Stage stage) {
+        TextField emailField = new TextField();
+        emailField.setPromptText("you@example.com");
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText("At least 8 characters");
+        Label loginStatus = new Label();
+
+        GridPane fields = new GridPane();
+        fields.setHgap(10);
+        fields.setVgap(12);
+        fields.addRow(0, new Label("Email:"), emailField);
+        fields.addRow(1, new Label("Password:"), passwordField);
+
+        Button signInButton = new Button("Sign In");
+        signInButton.setDefaultButton(true);
+        signInButton.setOnAction(event -> {
+            try {
+                AppointmentStorage.login(emailField.getText(), passwordField.getText());
+                passwordField.clear();
+                showMainScene(stage);
+            } catch (IOException exception) {
+                loginStatus.setText(exception.getMessage());
+            }
+        });
+
+        Button createAccountButton = new Button("Create Account");
+        createAccountButton.setOnAction(event -> {
+            try {
+                boolean signedIn = AppointmentStorage.signUp(emailField.getText(), passwordField.getText());
+                passwordField.clear();
+                if (signedIn) {
+                    showMainScene(stage);
+                } else {
+                    loginStatus.setText("Account created. Check your email, then return here to sign in.");
+                }
+            } catch (IOException exception) {
+                loginStatus.setText(exception.getMessage());
+            }
+        });
+
+        HBox actions = new HBox(10, signInButton, createAccountButton);
+        VBox loginPane = new VBox(16, new Label("Sign in to manage your appointments"),
+                fields, actions, loginStatus);
+        loginPane.setPadding(new Insets(28));
+        loginPane.setAlignment(Pos.CENTER_LEFT);
+        stage.setScene(new Scene(loginPane, 470, 280));
+    }
+
+    private void showMainScene(Stage stage) {
+        appointmentMaster = new AppointmentMaster();
+        appointmentBeingRescheduled = null;
+        searchField.clear();
         loadAppointments();
+
+        if (mainScene == null) {
+            buildMainScene(stage);
+        }
+        accountLabel.setText("Signed in as " + AppointmentStorage.getCurrentEmail());
+        clearScheduleForm();
+        refreshAppointments();
+        stage.setScene(mainScene);
+        stage.setWidth(760);
+        stage.setHeight(580);
+        stage.centerOnScreen();
+    }
+
+    private void buildMainScene(Stage stage) {
 
         tabPane = new TabPane();
         scheduleTab = new Tab("Schedule", createSchedulePane());
@@ -55,12 +129,22 @@ public class AppointmentManagerApp extends Application {
         appointmentsTab.setClosable(false);
         tabPane.getTabs().addAll(scheduleTab, appointmentsTab);
 
-        refreshAppointments();
+        Button logoutButton = new Button("Log Out");
+        logoutButton.setOnAction(event -> {
+            AppointmentStorage.logout();
+            appointmentMaster = new AppointmentMaster();
+            appointmentList.getItems().clear();
+            showLoginScene(stage);
+            stage.centerOnScreen();
+        });
+        HBox accountBar = new HBox(12, accountLabel, logoutButton);
+        accountBar.setAlignment(Pos.CENTER_RIGHT);
+        accountBar.setPadding(new Insets(10, 18, 10, 18));
 
-        Scene scene = new Scene(tabPane, 760, 540);
-        stage.setTitle("Appointment Manager");
-        stage.setScene(scene);
-        stage.show();
+        BorderPane root = new BorderPane();
+        root.setTop(accountBar);
+        root.setCenter(tabPane);
+        mainScene = new Scene(root, 760, 580);
     }
 
     private BorderPane createSchedulePane() {
@@ -131,10 +215,14 @@ public class AppointmentManagerApp extends Application {
             return;
         }
 
-        List<LocalTime> times = appointmentMaster.getAvailableStarts(
-                date, durationBox.getValue(), appointmentBeingRescheduled);
-        availableTimes.setItems(FXCollections.observableArrayList(times));
-        setStatus(times.isEmpty() ? "No times are available for that date." : "Select an available time.");
+        try {
+            List<LocalTime> times = AppointmentStorage.getAvailableStarts(
+                    date, durationBox.getValue(), appointmentBeingRescheduled);
+            availableTimes.setItems(FXCollections.observableArrayList(times));
+            setStatus(times.isEmpty() ? "No times are available for that date." : "Select an available time.");
+        } catch (IOException exception) {
+            setStatus("Could not load available times: " + exception.getMessage());
+        }
     }
 
     private void saveAppointment() {
