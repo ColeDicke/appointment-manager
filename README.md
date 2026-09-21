@@ -58,9 +58,10 @@ The API includes a `server/Dockerfile` for deployment services such as Render.
 
 ## Run the desktop app
 
-Start the API first, then run `AppointmentManagerLauncher` from IntelliJ. Sign
-up with an email and password, confirm the email if prompted, and sign in. The
-desktop app calls the API at `http://localhost:8080` by default. To point it at
-a deployed API, set `APPOINTMENT_API_URL` to that API's HTTPS base URL in the
-desktop run configuration. Login tokens remain in memory and are cleared when
-the user logs out or closes the app.
+Run `AppointmentManagerLauncher` from IntelliJ. Sign up with an email and
+password, confirm the email if prompted, and sign in. The desktop app calls the
+shared deployed API by default. To develop against a different API, set
+`APPOINTMENT_API_URL` to that API's base URL in the desktop run configuration
+(for example, `http://localhost:8080` while running the API locally). Login
+tokens remain in memory and are cleared when the user logs out or closes the
+app.

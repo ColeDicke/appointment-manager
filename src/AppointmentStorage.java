@@ -14,7 +14,8 @@ import java.util.UUID;
 
 /** Communicates with the Appointment API. Database credentials never leave the backend. */
 public final class AppointmentStorage {
-    private static final String DEFAULT_API_URL = "http://localhost:8080";
+    /** Public shared backend; APPOINTMENT_API_URL can override it for local development. */
+    private static final String DEFAULT_API_URL = "https://appointment-manager-wxnw.onrender.com";
     private static final HttpClient HTTP = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(20))
             .build();
