@@ -1,0 +1,206 @@
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-color: #f5f7fb;
+    -fx-text-fill: #1c2742;
+}
+
+.login-pane {
+    -fx-background-color: linear-gradient(to bottom right, #e6efff 0%, #f8fafc 48%, #e5f7ef 100%);
+    -fx-padding: 36;
+}
+
+.app-title {
+    -fx-font-size: 30px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #14213d;
+}
+
+.app-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #63708a;
+}
+
+.brand-mark {
+    -fx-alignment: center;
+    -fx-min-width: 54;
+    -fx-min-height: 54;
+    -fx-max-width: 54;
+    -fx-max-height: 54;
+    -fx-background-color: linear-gradient(to bottom right, #2563eb, #4f46e5);
+    -fx-background-radius: 18;
+    -fx-font-size: 18px;
+    -fx-font-weight: 800;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.32), 18, 0.22, 0, 6);
+}
+
+.login-card {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 20;
+    -fx-padding: 38 42;
+    -fx-effect: dropshadow(gaussian, rgba(18, 38, 63, 0.15), 28, 0.18, 0, 9);
+}
+
+.form-card {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 14;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(18, 38, 63, 0.07), 14, 0.14, 0, 3);
+}
+
+.login-fields {
+    -fx-padding: 6 0 2 0;
+}
+
+.label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #334155;
+}
+
+.text-field, .password-field, .combo-box, .date-picker {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-padding: 7 10;
+}
+
+.text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused {
+    -fx-border-color: #2563eb;
+    -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.22), 7, 0.15, 0, 0);
+}
+
+.button {
+    -fx-cursor: hand;
+    -fx-font-weight: 600;
+    -fx-padding: 8 15;
+    -fx-background-radius: 7;
+}
+
+.primary-button {
+    -fx-background-color: linear-gradient(to right, #2563eb, #4f46e5);
+    -fx-text-fill: white;
+}
+
+.primary-button:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+.secondary-button {
+    -fx-background-color: #eef2ff;
+    -fx-text-fill: #334155;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #dfe7ff;
+}
+
+.danger-button {
+    -fx-background-color: #fff1f2;
+    -fx-text-fill: #be123c;
+}
+
+.danger-button:hover {
+    -fx-background-color: #ffe4e6;
+}
+
+.status-label {
+    -fx-text-fill: #475569;
+    -fx-wrap-text: true;
+}
+
+.app-shell {
+    -fx-background-color: #f5f7fb;
+}
+
+.account-bar {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #e2e8f0 transparent;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.04), 6, 0.1, 0, 2);
+}
+
+.account-label {
+    -fx-font-weight: 600;
+    -fx-text-fill: #334155;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: white;
+}
+
+.tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 7 16;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #e8efff;
+    -fx-background-radius: 7 7 0 0;
+}
+
+.tab-pane .tab-label {
+    -fx-font-weight: 600;
+    -fx-text-fill: #475569;
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: #1d4ed8;
+}
+
+.section-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1e293b;
+}
+
+.list-view {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 10;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, rgba(18, 38, 63, 0.05), 10, 0.12, 0, 2);
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 11 12;
+    -fx-border-color: transparent transparent #eef2f7 transparent;
+    -fx-text-fill: #334155;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: #e8efff;
+    -fx-background-radius: 6;
+    -fx-text-fill: #1e40af;
+}
+
+.appointments-pane .list-view {
+    -fx-padding: 6;
+}
+
+.history-description {
+    -fx-text-fill: #64748b;
+}
+
+.filter-bar {
+    -fx-padding: 4 0 0 0;
+}
+
+.filter-button {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 16;
+    -fx-text-fill: #475569;
+    -fx-cursor: hand;
+    -fx-font-weight: 600;
+    -fx-padding: 6 13;
+}
+
+.filter-button:selected {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1d4ed8;
+}
