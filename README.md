@@ -98,10 +98,10 @@ This project uses free Render and Supabase plans for the shared deployment.
 - Render spins the API down after 15 minutes without traffic. The first request
   afterward can take around a minute while the service wakes. The app remains
   responsive; if the first request times out, wait a moment and try again.
-- A Supabase Free Plan project can pause after a period of low activity. The
-  project owner receives a warning email and can keep it active by visiting the
-  dashboard or using the app. If it pauses, the owner must select **Resume
-  project** in the Supabase dashboard before the shared app can work again.
+- A Supabase Free Plan project can pause after a period of low activity. I, the
+  project owner, receive a warning email and can keep it active by visiting the
+  dashboard or using the app. If it pauses, I will resume project in the
+   Supabase dashboard before the shared app can work again.
 - Supabase's built-in development email provider has a small confirmation-email
   limit. For frequent testing or production use, configure a custom SMTP
   provider.
