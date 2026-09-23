@@ -81,8 +81,8 @@ public class Appointment {
     }
 
     /** Returns a replacement appointment while retaining its reference ID. */
-    public Appointment rescheduledTo(int duration, LocalDateTime start) {
-        return new Appointment(duration, customerName, start, appointmentID);
+    public Appointment rescheduledTo(String updatedCustomerName, int duration, LocalDateTime start) {
+        return new Appointment(duration, updatedCustomerName, start, appointmentID);
     }
     /*
     Function: toString
